@@ -35,3 +35,43 @@ async function connect() {
         
     }
 }
+
+app.get('/movies', async (req, res) => {
+    try {
+        const result = await client.query('SELECT * FROM movies')
+        res.status(200).json(result.rows);
+    } catch (error) {
+        console.error('Error fetching movies: ', error.message);
+        res.status(500).json({ error: 'Failed to fetch movies' });
+    }
+})
+
+app.get('/users', async (req, res) => {
+    try {
+        const result = await client.query('SELECT * FROM users')
+        res.status(200).json(result.rows);
+    } catch (error) {
+        console.error('Error fetching users: ', error.message);
+        res.status(500).json({ error: 'Failed to fetch users' });
+    }
+})
+
+app.get('/reviews', async (req, res) => {
+    try {
+        const result = await client.query('SELECT * FROM reviews')
+        res.status(200).json(result.rows);
+    } catch (error) {
+        console.error('Error fetching reviews: ', error.message);
+        res.status(500).json({ error: 'Failed to fetch reviews' });
+    }
+})
+
+app.get('/favorites', async (req, res) => {
+    try {
+        const result = await client.query('SELECT * FROM favorites')
+        res.status(200).json(result.rows);
+    } catch (error) {
+        console.error('Error fetching favorites: ', error.message);
+        res.status(500).json({ error: 'Failed to fetch favorites' });
+    }
+})
