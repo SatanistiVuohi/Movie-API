@@ -75,3 +75,7 @@ app.get('/favorites', async (req, res) => {
         res.status(500).json({ error: 'Failed to fetch favorites' });
     }
 })
+//Dummy response even if this code already works well with connection and fetching data from the server
+app.get('/jason', (req, res) => {
+    res.json({name: 'Jason', surname: 'Voorhees', age: 40});
+});
