@@ -30,13 +30,12 @@ async function connect() {
     }
     catch (error) {
         console.log(error.message);
-
     }
-}
+};
 
 app.get('/', (req, res) => {
     res.send('<h1>You have connected to the database!!</h1>')
-})
+});
 
 // 1. Adding new movie genres
 
@@ -49,4 +48,74 @@ app.post('/add_genre', async (req, res) => {
     } catch (error) {
         console.error('Error adding genre:', error.message);
     }
-})
+});
+
+// 2. Adding new movies with properties
+
+app.post('/add_movie', async (req, res) => {
+    const { movie_name, year, genre } = req.body;
+
+    try {
+        const query = 'INSERT INTO movies (movie_name, year, genre) VALUES ($1, $2, $3) RETURNING *;';
+        const result = await client.query(query, [movie_name, year, genre]);
+
+        res.status(201).json({
+            message: "Movie added successfully!",
+            movie: result.rows[0]
+        });
+    } catch (error) {
+        console.error('Error adding movie:', error.message);
+    }
+});
+
+// 3. Registering a new user 
+
+app.post('/add_user', async (req, res) => {
+    const { name, username, password, year_of_birth } = req.body;
+
+    try {
+        const query = 'INSERT INTO users (name, username, password, year_of_birth) VALUES ($1, $2, $3, $4) RETURNING *;';
+        const result = await client.query(query, [name, username, password, year_of_birth]);
+
+        res.status(201).json({
+            message: "User registered successfully!",
+            user: result.rows[0]
+        });
+    } catch (error) {
+        console.error('Error registering user:', error.message);
+    }
+});
+
+// 4. Getting movies by id
+
+app.get('/movies/:id', async (req, res) => {
+    const { id } = req.params;
+
+    try {
+        const query = 'SELECT * FROM movies WHERE movie_id = $1';
+        const result = await client.query(query, [id]);
+
+        res.status(200).json({
+            message: "Movie retrieved successfully!",
+            movie: result.rows[0]
+        });
+    } catch (error) {
+        console.error('Error fetching movie:', error.message);
+    }
+});
+
+// 5. Removing movies by id
+app.delete('/movies/:id', async (req, res) => {
+    const { id } = req.params;
+
+    try {
+        const deleteMovie = 'DELETE FROM movies WHERE movie_id = $1';
+        await client.query(deleteMovie, [id]);
+
+        res.status(200).json({
+            message: "Movie deleted successfully!"
+        })
+    } catch (error) {
+        console.error('Error deleting movie:', error.message);
+    }
+});
