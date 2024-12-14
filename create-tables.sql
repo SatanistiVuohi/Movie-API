@@ -25,7 +25,6 @@ CREATE TABLE reviews(
 );
 
 CREATE TABLE favorites(
-    favorite_id INT NOT NULL PRIMARY KEY GENERATED ALWAYS AS IDENTITY,
     user_id INT,
     movie_id INT,
     FOREIGN KEY (user_id) REFERENCES users(user_id),

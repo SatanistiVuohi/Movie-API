@@ -5,12 +5,12 @@ import dotenv from 'dotenv';
 dotenv.config();
 
 const app = express();
-app.use(express.json());
 
 const { Client } = pg;
 
 app.listen(3001, () => {
     console.log('The server is running!');
+
 });
 
 const client = new Client({
@@ -20,6 +20,7 @@ const client = new Client({
     host: process.env.PG_HOST,
     port: process.env.PG_PORT
 });
+
 
 connect();
 
@@ -38,15 +39,12 @@ app.get('/', (req, res) => {
     res.send('<h1>You have connected to the database!!</h1>')
 })
 
-// 1. Adding new movie genres
-
-app.post('/add_genre', async (req, res) => {
-    const { genre } = req.body;
+app.get('/genre', (req, res) => {
     try {
-        const query = 'INSERT INTO movies (genre) VALUES ($1)';
-        await client.query(query, [genre]);
-        res.status(201).json({ message: "Genre added successfully!" });
+        const result =  client.query('SELECT * FROM movies;')
+        res.status(200).json(result.rows);
     } catch (error) {
-        console.error('Error adding genre:', error.message);
+        console.error('Error fetching movies: ', error.message);
+        res.status(500).json({ error: 'Failed to fetch movies' });
     }
 })
