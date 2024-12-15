@@ -119,3 +119,32 @@ app.delete('/movies/:id', async (req, res) => {
         console.error('Error deleting movie:', error.message);
     }
 });
+
+// 6. Getting all movies
+app.get('/movies', async (req, res) => {
+    const { page = 1 } = req.query;
+    const pageSize = 10;
+    const offset = (page - 1) * pageSize;
+
+    try {
+        const query = 'SELECT * FROM movies ORDER BY movie_id LIMIT $1 OFFSET $2';
+        const result = await client.query(query, [pageSize, offset]);
+
+        const countQuery = 'SELECT COUNT(*) AS total_movies FROM movies';
+        const countResult = await client.query(countQuery);
+        const totalMovies = parseInt(countResult.rows[0].total_movies, 10);
+        const totalPages = Math.ceil(totalMovies / pageSize);
+
+        res.status(200).json({
+            message: "Movies retrieved successfully!",
+            movies: result.rows,
+            pagination: {
+                currentPage: parseInt(page, 10),
+                totalPages,
+                totalMovies,
+                pageSize
+            }});
+    } catch (error) {
+        console.error('Error fetching movies: ', error.message);
+    }
+})
