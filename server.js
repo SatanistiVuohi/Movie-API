@@ -165,3 +165,20 @@ app.get('/movies/search/:keywords', async (req, res) => {
         console.error('Error fetching movies:', error.message);
     }
 });
+
+// 8. Adding a movie review.
+app.post('/add_review', async (req, res) => {
+    const { username, stars, review_text, movie_id } = req.body;
+
+    try {
+        const query = 'INSERT INTO reviews (user_id, movie_id, stars, review_text) SELECT user_id, $2, $3, $4 FROM users where username = $1 RETURNING *';
+        const result = await client.query(query, [username, movie_id, stars, review_text]);
+
+        res.status(201).json({
+            message: "Review added successfully!",
+            review: result.rows[0]
+        });
+    } catch (error) {
+        console.error('Error adding review:', error.message);
+    }
+});
