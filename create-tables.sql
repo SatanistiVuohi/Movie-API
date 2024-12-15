@@ -2,7 +2,8 @@ CREATE TABLE movies(
     movie_id INT NOT NULL PRIMARY KEY GENERATED ALWAYS AS IDENTITY,
     movie_name VARCHAR(255),
     year INT,
-    genre VARCHAR(255)
+    genre VARCHAR(255),
+    keywords VARCHAR(255)
 );
 
 CREATE TABLE users(

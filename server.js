@@ -147,4 +147,21 @@ app.get('/movies', async (req, res) => {
     } catch (error) {
         console.error('Error fetching movies: ', error.message);
     }
-})
+});
+
+// 7. Getting movies by keyword.
+app.get('/movies/search/:keywords', async (req, res) => {
+    const { keywords } = req.params;
+
+    try {
+        const query = 'SELECT * FROM movies WHERE keywords ILIKE $1';
+        const result = await client.query(query, [`%${keywords}%`]);
+
+        res.status(200).json({
+            message: "Movies retrieved successfully!",
+            movies: result.rows
+        });
+    } catch (error) {
+        console.error('Error fetching movies:', error.message);
+    }
+});
