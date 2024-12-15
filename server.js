@@ -182,3 +182,20 @@ app.post('/add_review', async (req, res) => {
         console.error('Error adding review:', error.message);
     }
 });
+
+// 9. Adding favorite movie for user
+app.post('/add_favorite', async (req, res) => {
+    const { username, movie_id } = req.body;
+
+    try {
+        const query = 'INSERT INTO favorites (user_id, movie_id) SELECT u.user_id, m.movie_id FROM users u JOIN movies m on m.movie_id = $1 WHERE u.username = $2 RETURNING *';
+        const result = await client.query(query, [movie_id, username]);
+
+        res.status(201).json({
+            message: "Favorite movie added successfully!",
+            favorite: result.rows[0]
+        })
+    } catch(error) {
+        console.error('Error adding favorite movie:', error.message);
+    }
+});
