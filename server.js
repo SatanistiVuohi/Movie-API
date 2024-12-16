@@ -143,7 +143,8 @@ app.get('/movies', async (req, res) => {
                 totalPages,
                 totalMovies,
                 pageSize
-            }});
+            }
+        });
     } catch (error) {
         console.error('Error fetching movies: ', error.message);
     }
@@ -195,7 +196,24 @@ app.post('/add_favorite', async (req, res) => {
             message: "Favorite movie added successfully!",
             favorite: result.rows[0]
         })
-    } catch(error) {
+    } catch (error) {
         console.error('Error adding favorite movie:', error.message);
+    }
+});
+
+// 10. Getting favorite movies by username.
+app.get('/favorites/:username', async (req, res) => {
+    const { username } = req.params;
+
+    try {
+        const query = 'SELECT m.movie_id, m.movie_name, m.year, m.genre, m.keywords FROM favorites f JOIN users u ON u.user_id = f.user_id JOIN movies m on m.movie_id = f.movie_id WHERE u.username = $1';
+        const result = await client.query(query, [username]);
+
+        res.status(200).json({
+            message: "Favorites retrieved successfully!",
+            favorites: result.rows
+        });
+    } catch (error) {
+        console.error('Error fetching favorites:', error.message);
     }
 });
