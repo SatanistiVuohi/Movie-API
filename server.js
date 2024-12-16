@@ -110,10 +110,16 @@ app.delete('/movies/:id', async (req, res) => {
 
     try {
         const deleteMovie = 'DELETE FROM movies WHERE movie_id = $1';
-        await client.query(deleteMovie, [id]);
+        const result = await client.query(deleteMovie, [id]);
 
+        if (!result.rows.length) {
+            return res.status(404).json({
+                message: "Movie not found. No movie was deleted."
+            });
+        }
         res.status(200).json({
-            message: "Movie deleted successfully!"
+            message: "Movie deleted successfully!",
+            deletedMovie: result.rows[0]
         })
     } catch (error) {
         console.error('Error deleting movie:', error.message);
