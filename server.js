@@ -1,37 +1,12 @@
 import express from 'express';
-import pg from 'pg';
-import dotenv from 'dotenv';
-
-dotenv.config();
+import { pgPool } from './connection.js';
 
 const app = express();
 app.use(express.json());
 
-const { Client } = pg;
-
 app.listen(3001, () => {
     console.log('The server is running!');
 });
-
-const client = new Client({
-    user: process.env.PG_USER,
-    password: String(process.env.PG_PASSWORD),
-    database: process.env.PG_DATABASE,
-    host: process.env.PG_HOST,
-    port: process.env.PG_PORT
-});
-
-connect();
-
-async function connect() {
-    try {
-        await client.connect();
-        console.log('Connected to the database!');
-    }
-    catch (error) {
-        console.log(error.message);
-    }
-};
 
 app.get('/', (req, res) => {
     res.send('<h1>You have connected to the database!!</h1>')
@@ -43,7 +18,7 @@ app.post('/add_genre', async (req, res) => {
     const { genre } = req.body;
     try {
         const query = 'INSERT INTO movies (genre) VALUES ($1)';
-        await client.query(query, [genre]);
+        await pgPool.query(query, [genre]);
         res.status(201).json({ message: "Genre added successfully!" });
     } catch (error) {
         console.error('Error adding genre:', error.message);
@@ -57,7 +32,7 @@ app.post('/add_movie', async (req, res) => {
 
     try {
         const query = 'INSERT INTO movies (movie_name, year, genre) VALUES ($1, $2, $3) RETURNING *;';
-        const result = await client.query(query, [movie_name, year, genre]);
+        const result = await pgPool.query(query, [movie_name, year, genre]);
 
         res.status(201).json({
             message: "Movie added successfully!",
@@ -75,7 +50,7 @@ app.post('/add_user', async (req, res) => {
 
     try {
         const query = 'INSERT INTO users (name, username, password, year_of_birth) VALUES ($1, $2, $3, $4) RETURNING *;';
-        const result = await client.query(query, [name, username, password, year_of_birth]);
+        const result = await pgPool.query(query, [name, username, password, year_of_birth]);
 
         res.status(201).json({
             message: "User registered successfully!",
@@ -93,7 +68,7 @@ app.get('/movies/:id', async (req, res) => {
 
     try {
         const query = 'SELECT * FROM movies WHERE movie_id = $1';
-        const result = await client.query(query, [id]);
+        const result = await pgPool.query(query, [id]);
 
         res.status(200).json({
             message: "Movie retrieved successfully!",
@@ -110,7 +85,7 @@ app.delete('/movies/:id', async (req, res) => {
 
     try {
         const deleteMovie = 'DELETE FROM movies WHERE movie_id = $1';
-        const result = await client.query(deleteMovie, [id]);
+        const result = await pgPool.query(deleteMovie, [id]);
 
         if (!result.rows.length) {
             return res.status(404).json({
@@ -134,10 +109,10 @@ app.get('/movies', async (req, res) => {
 
     try {
         const query = 'SELECT * FROM movies ORDER BY movie_id LIMIT $1 OFFSET $2';
-        const result = await client.query(query, [pageSize, offset]);
+        const result = await pgPool.query(query, [pageSize, offset]);
 
         const countQuery = 'SELECT COUNT(*) AS total_movies FROM movies';
-        const countResult = await client.query(countQuery);
+        const countResult = await pgPool.query(countQuery);
         const totalMovies = parseInt(countResult.rows[0].total_movies, 10);
         const totalPages = Math.ceil(totalMovies / pageSize);
 
@@ -162,7 +137,7 @@ app.get('/movies/search/:keywords', async (req, res) => {
 
     try {
         const query = 'SELECT * FROM movies WHERE keywords ILIKE $1';
-        const result = await client.query(query, [`%${keywords}%`]);
+        const result = await pgPool.query(query, [`%${keywords}%`]);
 
         res.status(200).json({
             message: "Movies retrieved successfully!",
@@ -179,7 +154,7 @@ app.post('/add_review', async (req, res) => {
 
     try {
         const query = 'INSERT INTO reviews (user_id, movie_id, stars, review_text) SELECT user_id, $2, $3, $4 FROM users where username = $1 RETURNING *';
-        const result = await client.query(query, [username, movie_id, stars, review_text]);
+        const result = await pgPool.query(query, [username, movie_id, stars, review_text]);
 
         res.status(201).json({
             message: "Review added successfully!",
@@ -196,7 +171,7 @@ app.post('/add_favorite', async (req, res) => {
 
     try {
         const query = 'INSERT INTO favorites (user_id, movie_id) SELECT u.user_id, m.movie_id FROM users u JOIN movies m on m.movie_id = $1 WHERE u.username = $2 RETURNING *';
-        const result = await client.query(query, [movie_id, username]);
+        const result = await pgPool.query(query, [movie_id, username]);
 
         res.status(201).json({
             message: "Favorite movie added successfully!",
@@ -213,7 +188,7 @@ app.get('/favorites/:username', async (req, res) => {
 
     try {
         const query = 'SELECT m.movie_id, m.movie_name, m.year, m.genre, m.keywords FROM favorites f JOIN users u ON u.user_id = f.user_id JOIN movies m on m.movie_id = f.movie_id WHERE u.username = $1';
-        const result = await client.query(query, [username]);
+        const result = await pgPool.query(query, [username]);
 
         res.status(200).json({
             message: "Favorites retrieved successfully!",
